@@ -22,6 +22,8 @@ build-SharpHEICLayer: libvips
 	# sharp uses several of the libs we installed or compiled. extract the full list and copy all of those into $(ARTIFACTS_DIR)/lib
 	# extract list with ldd from sharp.node, manipulate a bit to only get the absolute paths, then copy
 
+	export SHARP_FORCE_GLOBAL_LIBVIPS=1
+
 	# install
 	npm install --save --prefix "$(ARTIFACTS_DIR)/nodejs/" node-addon-api node-gyp
 	npm install --build-from-source --prefix "$(ARTIFACTS_DIR)/nodejs/" --verbose --foreground-scripts --platform=linux --arch=x64 sharp@$(SHARP_VERSION)

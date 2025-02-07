@@ -84,7 +84,7 @@ The following table lists the release version of this repo together with the ver
 - `nodejs14.x` (v2.x)
 - `nodejs16.x` (v3.x)
 - `nodejs20.x` (v4.x)
-- `nodejs20.x` (upstream)
+- `nodejs22.x` (upstream)
 
 ## Contributions
 If you would like to contribute to this repository, please open an issue or submit a PR.
