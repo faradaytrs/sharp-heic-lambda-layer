@@ -26,6 +26,9 @@ build-SharpHEICLayer: libvips
 
 	# install
 	npm install --save --prefix "$(ARTIFACTS_DIR)/nodejs/" node-addon-api node-gyp
+
+	pkg-config --modversion vips-cpp
+
 	npm install --build-from-source --prefix "$(ARTIFACTS_DIR)/nodejs/" --verbose --foreground-scripts --platform=linux --arch=x64 sharp@$(SHARP_VERSION)
 
 	# debug logs
