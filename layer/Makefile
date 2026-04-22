@@ -60,7 +60,14 @@ libde265:
 	@printf '\n==> %s\n' "Building libde265 $(LIBDE265_VERSION)"
 	rm -rf "libde265-$(LIBDE265_VERSION)"
 	$(CURL) "https://github.com/strukturag/libde265/releases/download/v$(LIBDE265_VERSION)/libde265-$(LIBDE265_VERSION).tar.gz" | tar zx
-	cd libde265-$(LIBDE265_VERSION) && ./autogen.sh && ./configure --disable-dec265 --disable-sherlock265 --prefix=$(PREFIX_PATH) && make V=0 && make install
+	cd libde265-$(LIBDE265_VERSION) && cmake -S . -B build \
+		-DCMAKE_INSTALL_PREFIX=$(PREFIX_PATH) \
+		-DCMAKE_INSTALL_LIBDIR=$(LIB_PATH) \
+		-DBUILD_SHARED_LIBS=ON \
+		-DENABLE_DECODER=OFF \
+		-DENABLE_SHERLOCK265=OFF && \
+		cmake --build build --parallel && \
+		cmake --install build
 
 x265:
 	@printf '\n==> %s\n' "Building x265 $(X265_VERSION)"
