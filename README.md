@@ -58,13 +58,20 @@ The environment variables are used to create a `samconfig.toml` file that config
 ### Note regarding build process
 Previously, some custom docker images were needed to build this layer. AWS now publishes managed SAM build images for current Lambda runtimes, including `public.ecr.aws/sam/build-nodejs24.x`.
 
+The current build no longer compiles every dependency from source. On Amazon Linux 2023, `libwebp` is installed from the system package repository, while the HEIF-related codec stack and `libvips` are still built locally because the Lambda-compatible AL2023 environment does not provide suitable `libvips`/`libheif` packages out of the box.
+
 ## Background
 This repo exists as it is rather painful to compile all libraries required to get sharp to work with HEIC/HEIF files in an AWS Lambda environment. The sharp repository has several [issues](https://github.com/lovell/sharp/issues) related to this.
 
 ### Layer contents
-This lambda layer contains the node module [sharp](https://github.com/lovell/sharp). But unlike a normal installation via `npm i sharp` this layer does not use the prebuilt sharp and libvips binaries. This layer compiles libwebp, libde265, libheif, and libvips from source, then explicitly runs `sharp`'s build script against that global libvips installation in order to provide HEIC/HEIF (and WebP) functionality in an AWS Lambda environment.
+This lambda layer contains the node module [sharp](https://github.com/lovell/sharp). But unlike a normal installation via `npm i sharp` this layer does not use the prebuilt sharp and libvips binaries. The build installs `libwebp` from the Amazon Linux 2023 package repository, then compiles `libde265`, `x265`, `libaom`, `libheif`, and `libvips` before explicitly running `sharp`'s build script against that global libvips installation in order to provide HEIC/HEIF (and WebP) functionality in an AWS Lambda environment.
 
 As of `sharp@0.35.0-rc.5`, building from source is no longer triggered automatically during `npm install`, so the layer build now installs the package first and then runs `npm explore sharp -- npm run build`.
+
+The native build is intentionally split this way:
+- `libwebp` comes from the system package manager to avoid recompiling a standard dependency on every build.
+- `libde265`, `x265`, `libaom`, and `libheif` remain custom-built so the layer keeps the full HEIF/HEIC feature set.
+- `libvips` is still custom-built because `sharp` needs to link against a `libvips` build that already has HEIF support enabled.
 
 ### Dependencies
 The following table lists the release version of this repo together with the version of each dependency. Patch versions are related to the build process or documentation and have the same dependencies as the minor version.
@@ -81,7 +88,7 @@ The following table lists the release version of this repo together with the ver
 |   4.2.0 | 0.33.5 |  8.15.3 |  1.18.2 |   1.4.0 |    1.0.15 |    3.6 |  3.9.1 |     20 |
 |   5.0.0 | 0.34.3 |  8.17.1 |  1.20.1 |   1.6.0 |    1.0.16 |    4.1 | 3.12.1 |     22 |
 |   5.1.0 | 0.34.4 |  8.17.2 |  1.20.2 |   1.6.0 |    1.0.16 |    4.1 | 3.13.1 |     22 |
-| upstream | 0.35.0-rc.5 | 8.18.2 |  1.21.2 |   1.6.0 |    1.0.18 |    4.1 | 3.13.3 |     24 |
+| upstream | 0.35.0-rc.5 |  8.18.2 |  1.21.2 | AL2023 pkg |    1.0.18 |    4.1 | 3.13.3 |     24 |
 
 ### CompatibleRuntimes
 - `nodejs12.x` (v1.x)
