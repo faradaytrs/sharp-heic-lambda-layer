@@ -41,7 +41,7 @@ build-SharpHEICLayer: libvips
 	SHARP_FORCE_GLOBAL_LIBVIPS=1 npm --prefix "$(ARTIFACTS_NODEJS_DIR)/node_modules/sharp" --loglevel verbose run build
 
 	@printf '\n==> %s\n' "Collecting shared library dependencies"
-	SHARP_BINARY="$$(node -e 'const fs = require(\"fs\"); const path = require(\"path\"); const root = process.argv[1]; const pattern = /(^|\/)Release\/sharp[^/]*\.node$$/; const walk = (dir) => { for (const entry of fs.readdirSync(dir, { withFileTypes: true })) { const full = path.join(dir, entry.name); if (entry.isDirectory()) { const found = walk(full); if (found) return found; } else if (pattern.test(full)) { return full; } } return \"\"; }; const result = walk(root); if (result) process.stdout.write(result);' "$(ARTIFACTS_NODEJS_DIR)/node_modules/sharp")"; \
+	SHARP_BINARY="$$(node -e 'const fs = require("fs"); const path = require("path"); const root = process.argv[1]; const pattern = /(^|\/)Release\/sharp[^/]*\.node$$/; const walk = (dir) => { for (const entry of fs.readdirSync(dir, { withFileTypes: true })) { const full = path.join(dir, entry.name); if (entry.isDirectory()) { const found = walk(full); if (found) return found; } else if (pattern.test(full)) { return full; } } return ""; }; const result = walk(root); if (result) process.stdout.write(result);' "$(ARTIFACTS_NODEJS_DIR)/node_modules/sharp")"; \
 	test -n "$$SHARP_BINARY" || { echo "Unable to locate compiled sharp addon"; exit 1; }; \
 	test -f "$$SHARP_BINARY"; \
 	ldd "$$SHARP_BINARY"; \
