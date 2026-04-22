@@ -6,7 +6,7 @@ AWS Lambda Layer providing [sharp](https://github.com/lovell/sharp) with HEIC (a
 ## Prerequisites
 
 * Docker
-* [SAM v1.33.0 or higher](https://github.com/awsdocs/aws-sam-developer-guide/blob/master/doc_source/serverless-sam-cli-install.md)
+* [A recent AWS SAM CLI release with `nodejs24.x` support](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html)
 * Node v22 (for v5.x)
 
 ## Usage
@@ -15,7 +15,7 @@ Due to potential license concerns for the HEVC patent group, this repo can't be 
 
 But you can compile and deploy this lambda layer yourself at your own risk and use it wihin your own accounts. All you need is an S3 bucket to deploy the compiled code to (replace `your-s3-bucket` in the code snippet below). Please see the note below regarding the build process.
 
-It is recommended to automate this process using AWS CodeBuild. A buildspec file is provided in the repo. In that case you'll have to set the `SAM_BUCKET` environment variable in CodeBuild. For other environment variables see the table below. The base image that should be used is `aws/codebuild/amazonlinux2-x86_64-standard:5.0`.
+It is recommended to automate this process using AWS CodeBuild. A buildspec file is provided in the repo. In that case you'll have to set the `SAM_BUCKET` environment variable in CodeBuild. For other environment variables see the table below. Use an Amazon Linux 2023 standard image such as `aws/codebuild/amazonlinux-x86_64-standard:6.0`.
 
 A sample CloudFormation template is provided to setup the CodeBuild project, [sample-buildproject.yaml](sample-buildproject.yaml).
 
@@ -56,7 +56,7 @@ The special value `account` for `PRINCIPAL` is used to give access to the accoun
 The environment variables are used to create a `samconfig.toml` file that configures the `sam package` and `sam deploy` commands.
 
 ### Note regarding build process
-Previously, some custom docker images were needed to build this layer. AWS has since published newer images which work out of the box. `saml-cli` version `v1.33.0` is using `public.ecr.aws/sam/build-nodejs14.x:latest-x86_64`
+Previously, some custom docker images were needed to build this layer. AWS now publishes managed SAM build images for current Lambda runtimes, including `public.ecr.aws/sam/build-nodejs24.x`.
 
 ## Background
 This repo exists as it is rather painful to compile all libraries required to get sharp to work with HEIC/HEIF files in an AWS Lambda environment. The sharp repository has several [issues](https://github.com/lovell/sharp/issues) related to this.
