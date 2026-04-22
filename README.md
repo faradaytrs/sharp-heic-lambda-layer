@@ -7,7 +7,7 @@ AWS Lambda Layer providing [sharp](https://github.com/lovell/sharp) with HEIC (a
 
 * Docker
 * [A recent AWS SAM CLI release with `nodejs24.x` support](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html)
-* Node v22 (for v5.x)
+* Node v24 (current upstream build)
 
 ## Usage
 
@@ -62,7 +62,9 @@ Previously, some custom docker images were needed to build this layer. AWS now p
 This repo exists as it is rather painful to compile all libraries required to get sharp to work with HEIC/HEIF files in an AWS Lambda environment. The sharp repository has several [issues](https://github.com/lovell/sharp/issues) related to this.
 
 ### Layer contents
-This lambda layer contains the node module [sharp](https://github.com/lovell/sharp). But unlike a normal installation via `npm i sharp` this layer does not use the prebuilt sharp and libvips binaries. This layer compiles libwebp, libde265, libheif, libvips, and sharp from source in order to provide HEIC/HEIF (and webp) functionality in an AWS Lambda environment.
+This lambda layer contains the node module [sharp](https://github.com/lovell/sharp). But unlike a normal installation via `npm i sharp` this layer does not use the prebuilt sharp and libvips binaries. This layer compiles libwebp, libde265, libheif, and libvips from source, then explicitly runs `sharp`'s build script against that global libvips installation in order to provide HEIC/HEIF (and WebP) functionality in an AWS Lambda environment.
+
+As of `sharp@0.35.0-rc.5`, building from source is no longer triggered automatically during `npm install`, so the layer build now installs the package first and then runs `npm explore sharp -- npm run build`.
 
 ### Dependencies
 The following table lists the release version of this repo together with the version of each dependency. Patch versions are related to the build process or documentation and have the same dependencies as the minor version.
@@ -79,7 +81,7 @@ The following table lists the release version of this repo together with the ver
 |   4.2.0 | 0.33.5 |  8.15.3 |  1.18.2 |   1.4.0 |    1.0.15 |    3.6 |  3.9.1 |     20 |
 |   5.0.0 | 0.34.3 |  8.17.1 |  1.20.1 |   1.6.0 |    1.0.16 |    4.1 | 3.12.1 |     22 |
 |   5.1.0 | 0.34.4 |  8.17.2 |  1.20.2 |   1.6.0 |    1.0.16 |    4.1 | 3.13.1 |     22 |
-| upstream | 0.34.5 | 8.17.3 |  1.21.2 |   1.6.0 |    1.0.18 |    4.1 | 3.13.3 |     24 |
+| upstream | 0.35.0-rc.5 | 8.18.2 |  1.21.2 |   1.6.0 |    1.0.18 |    4.1 | 3.13.3 |     24 |
 
 ### CompatibleRuntimes
 - `nodejs12.x` (v1.x)

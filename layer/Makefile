@@ -4,8 +4,8 @@ LIBDE265_VERSION=1.0.18
 LIBAOM_VERSION=3.13.3
 X265_VERSION=4.1
 LIBHEIF_VERSION=1.21.2
-VIPS_VERSION=8.17.3
-SHARP_VERSION=0.34.5
+VIPS_VERSION=8.18.2
+SHARP_VERSION=0.35.0-rc.5
 
 PREFIX_PATH=/usr/local
 LIB_PATH=$(PREFIX_PATH)/lib
@@ -18,8 +18,6 @@ export LD_LIBRARY_PATH=$(LIB_PATH):$$LD_LIBRARY_PATH
 CURL=curl --fail --location --silent --show-error
 ARTIFACTS_NODEJS_DIR=$(ARTIFACTS_DIR)/nodejs
 ARTIFACTS_LIB_DIR=$(ARTIFACTS_DIR)/lib
-SHARP_BINARY=$(ARTIFACTS_NODEJS_DIR)/node_modules/sharp/src/build/Release/sharp-linux-x64.node
-
 .PHONY: build-SharpHEICLayer clean installLib libwebp libde265 x265 libaom libheif libvips
 
 build-SharpHEICLayer: libvips
@@ -36,18 +34,22 @@ build-SharpHEICLayer: libvips
 	@printf '\n==> %s\n' "Checking libvips version"
 	pkg-config --modversion vips-cpp
 
+	@printf '\n==> %s\n' "Installing sharp $(SHARP_VERSION)"
+	npm install --save --prefix "$(ARTIFACTS_NODEJS_DIR)/" --verbose --platform=linux --arch=x64 sharp@$(SHARP_VERSION)
+
 	@printf '\n==> %s\n' "Building sharp $(SHARP_VERSION) from source"
-	SHARP_FORCE_GLOBAL_LIBVIPS=1 npm install --build-from-source --prefix "$(ARTIFACTS_NODEJS_DIR)/" --verbose --foreground-scripts --platform=linux --arch=x64 sharp@$(SHARP_VERSION)
+	SHARP_FORCE_GLOBAL_LIBVIPS=1 npm_config_platform=linux npm_config_arch=x64 npm explore --prefix "$(ARTIFACTS_NODEJS_DIR)/" sharp -- npm run build
 
 	@printf '\n==> %s\n' "Collecting shared library dependencies"
-	test -f "$(SHARP_BINARY)"
-	ldd "$(SHARP_BINARY)"
-	ldd "$(SHARP_BINARY)" | awk '/\// { print $$3 }' | sort -u | tee /tmp/sharp-layer-libs.txt
-	while IFS= read -r lib; do cp "$$lib" "$(ARTIFACTS_LIB_DIR)"; done < /tmp/sharp-layer-libs.txt
-
-	@printf '\n==> %s\n' "Layer artifact summary"
-	printf '  sharp binary: %s\n' "$(SHARP_BINARY)"
-	printf '  copied shared libraries:\n'
+	SHARP_BINARY="$$(rg --files "$(ARTIFACTS_NODEJS_DIR)/node_modules/sharp" | rg '/Release/sharp[^/]*\.node$$' | awk 'NR == 1 { print; exit }')"; \
+	test -n "$$SHARP_BINARY" || { echo "Unable to locate compiled sharp addon"; exit 1; }; \
+	test -f "$$SHARP_BINARY"; \
+	ldd "$$SHARP_BINARY"; \
+	ldd "$$SHARP_BINARY" | awk '/\// { print $$3 }' | sort -u | tee /tmp/sharp-layer-libs.txt; \
+	while IFS= read -r lib; do cp "$$lib" "$(ARTIFACTS_LIB_DIR)"; done < /tmp/sharp-layer-libs.txt; \
+	printf '\n==> %s\n' "Layer artifact summary"; \
+	printf '  sharp binary: %s\n' "$$SHARP_BINARY"; \
+	printf '  copied shared libraries:\n'; \
 	ls -la "$(ARTIFACTS_LIB_DIR)"
 
 libwebp:
