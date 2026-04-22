@@ -1,4 +1,5 @@
 # Library Versions
+WEBP_VERSION=1.6.0
 LIBDE265_VERSION=1.0.18
 LIBAOM_VERSION=3.13.3
 X265_VERSION=4.1
@@ -17,7 +18,7 @@ export LD_LIBRARY_PATH=$(LIB_PATH):$$LD_LIBRARY_PATH
 CURL=curl --fail --location --silent --show-error
 ARTIFACTS_NODEJS_DIR=$(ARTIFACTS_DIR)/nodejs
 ARTIFACTS_LIB_DIR=$(ARTIFACTS_DIR)/lib
-.PHONY: build-SharpHEICLayer clean installLib system-libs verifySystemLibs codec-stack verifyCodecStack verifyLibvips libde265 x265 libaom libheif libvips
+.PHONY: build-SharpHEICLayer clean installLib system-libs verifySystemLibs codec-stack verifyCodecStack verifyLibvips libwebp libde265 x265 libaom libheif libvips
 
 build-SharpHEICLayer: libvips
 	@printf '\n==> %s\n' "Preparing layer artifacts"
@@ -25,8 +26,7 @@ build-SharpHEICLayer: libvips
 	mkdir -p "$(ARTIFACTS_NODEJS_DIR)" "$(ARTIFACTS_LIB_DIR)"
 
 	@printf '\n==> %s\n' "Using dependency versions"
-	printf '  sharp=%s\n  libvips=%s\n  libheif=%s\n  libde265=%s\n  x265=%s\n  libaom=%s\n' "$(SHARP_VERSION)" "$(VIPS_VERSION)" "$(LIBHEIF_VERSION)" "$(LIBDE265_VERSION)" "$(X265_VERSION)" "$(LIBAOM_VERSION)"
-	printf '  libwebp=%s (system package)\n' "$$(pkg-config --modversion libwebp)"
+	printf '  sharp=%s\n  libvips=%s\n  libheif=%s\n  libwebp=%s\n  libde265=%s\n  x265=%s\n  libaom=%s\n' "$(SHARP_VERSION)" "$(VIPS_VERSION)" "$(LIBHEIF_VERSION)" "$(WEBP_VERSION)" "$(LIBDE265_VERSION)" "$(X265_VERSION)" "$(LIBAOM_VERSION)"
 
 	@printf '\n==> %s\n' "Installing sharp build prerequisites"
 	npm install --no-save --prefix "$(ARTIFACTS_NODEJS_DIR)/" node-addon-api node-gyp
@@ -55,8 +55,14 @@ build-SharpHEICLayer: libvips
 system-libs: installLib verifySystemLibs
 
 verifySystemLibs:
-	@printf '\n==> %s\n' "Verifying system-provided image libraries"
-	pkg-config --modversion libwebp
+	@printf '\n==> %s\n' "Verifying native build prerequisites"
+	pkg-config --version
+
+libwebp:
+	@printf '\n==> %s\n' "Building libwebp $(WEBP_VERSION)"
+	rm -rf "libwebp-$(WEBP_VERSION)"
+	$(CURL) "https://github.com/webmproject/libwebp/archive/v$(WEBP_VERSION).tar.gz" | tar zx
+	cd libwebp-$(WEBP_VERSION) && ./autogen.sh && ./configure --enable-libwebpmux --prefix=$(PREFIX_PATH) && make V=0 && make install
 
 codec-stack: libheif verifyCodecStack
 
@@ -96,9 +102,9 @@ libheif: x265 libde265 libaom
 	@printf '\n==> %s\n' "Building libheif $(LIBHEIF_VERSION)"
 	rm -rf "libheif-$(LIBHEIF_VERSION)"
 	$(CURL) "https://github.com/strukturag/libheif/releases/download/v$(LIBHEIF_VERSION)/libheif-$(LIBHEIF_VERSION).tar.gz" | tar zx
-	cd libheif-$(LIBHEIF_VERSION) && mkdir -p build && cd build && cmake -DCMAKE_INSTALL_LIBDIR=$(LIB_PATH) --preset=release-noplugins .. && make V=0 && make install
+	cd libheif-$(LIBHEIF_VERSION) && mkdir -p build && cd build && cmake -DCMAKE_INSTALL_LIBDIR=$(LIB_PATH) -DWITH_EXAMPLES=OFF --preset=release-noplugins .. && make V=0 && make install
 
-libvips: system-libs codec-stack
+libvips: system-libs codec-stack libwebp
 	@printf '\n==> %s\n' "Building libvips $(VIPS_VERSION)"
 	rm -rf "vips-$(VIPS_VERSION)"
 	$(CURL) "https://github.com/libvips/libvips/releases/download/v$(VIPS_VERSION)/vips-$(VIPS_VERSION).tar.xz" | tar xJ
@@ -108,7 +114,7 @@ libvips: system-libs codec-stack
 verifyLibvips:
 	@printf '\n==> %s\n' "Verifying libvips build"
 	pkg-config --modversion vips-cpp
-	pkg-config --print-requires vips-cpp | rg '^libheif$$'
+	pkg-config --print-requires vips-cpp | awk '$$0 == "libheif" { found = 1 } END { exit(found ? 0 : 1) }'
 
 # libheif: libde265
 # 	# libheif
@@ -130,7 +136,6 @@ installLib:
 		expat-devel \
 		libjpeg-turbo-devel \
 		libpng-devel \
-		libwebp-devel \
 		giflib-devel \
 		libexif-devel \
 		librsvg2-devel \
@@ -146,6 +151,7 @@ installLib:
 clean:
 	@printf '\n==> %s\n' "Removing downloaded source directories"
 	rm -rf \
+		"libwebp-$(WEBP_VERSION)" \
 		"libde265-$(LIBDE265_VERSION)" \
 		"x265_$(X265_VERSION)" \
 		"libaom-$(LIBAOM_VERSION)" \
