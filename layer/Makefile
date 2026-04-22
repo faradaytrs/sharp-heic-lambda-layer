@@ -114,7 +114,7 @@ libvips: system-libs codec-stack libwebp
 verifyLibvips:
 	@printf '\n==> %s\n' "Verifying libvips build"
 	pkg-config --modversion vips-cpp
-	pkg-config --print-requires vips-cpp | awk '$$0 == "libheif" { found = 1 } END { exit(found ? 0 : 1) }'
+	"$(PREFIX_PATH)/bin/vips" -l | awk '/Heif/ { found = 1 } END { exit(found ? 0 : 1) }'
 
 # libheif: libde265
 # 	# libheif
