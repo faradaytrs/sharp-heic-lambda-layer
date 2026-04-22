@@ -29,19 +29,19 @@ build-SharpHEICLayer: libvips
 	printf '  sharp=%s\n  libvips=%s\n  libheif=%s\n  libwebp=%s\n  libde265=%s\n  x265=%s\n  libaom=%s\n' "$(SHARP_VERSION)" "$(VIPS_VERSION)" "$(LIBHEIF_VERSION)" "$(WEBP_VERSION)" "$(LIBDE265_VERSION)" "$(X265_VERSION)" "$(LIBAOM_VERSION)"
 
 	@printf '\n==> %s\n' "Installing sharp build prerequisites"
-	npm install --save --prefix "$(ARTIFACTS_NODEJS_DIR)/" node-addon-api node-gyp
+	npm install --no-save --prefix "$(ARTIFACTS_NODEJS_DIR)/" node-addon-api node-gyp
 
 	@printf '\n==> %s\n' "Checking libvips version"
 	pkg-config --modversion vips-cpp
 
 	@printf '\n==> %s\n' "Installing sharp $(SHARP_VERSION)"
-	npm install --save --prefix "$(ARTIFACTS_NODEJS_DIR)/" --verbose --platform=linux --arch=x64 sharp@$(SHARP_VERSION)
+	npm_config_platform=linux npm_config_arch=x64 npm install --no-save --prefix "$(ARTIFACTS_NODEJS_DIR)/" --verbose sharp@$(SHARP_VERSION)
 
 	@printf '\n==> %s\n' "Building sharp $(SHARP_VERSION) from source"
 	SHARP_FORCE_GLOBAL_LIBVIPS=1 npm_config_platform=linux npm_config_arch=x64 npm explore --prefix "$(ARTIFACTS_NODEJS_DIR)/" sharp -- npm run build
 
 	@printf '\n==> %s\n' "Collecting shared library dependencies"
-	SHARP_BINARY="$$(rg --files "$(ARTIFACTS_NODEJS_DIR)/node_modules/sharp" | rg '/Release/sharp[^/]*\.node$$' | awk 'NR == 1 { print; exit }')"; \
+	SHARP_BINARY="$$(node -e 'const fs = require(\"fs\"); const path = require(\"path\"); const root = process.argv[1]; const pattern = /(^|\/)Release\/sharp[^/]*\.node$$/; const walk = (dir) => { for (const entry of fs.readdirSync(dir, { withFileTypes: true })) { const full = path.join(dir, entry.name); if (entry.isDirectory()) { const found = walk(full); if (found) return found; } else if (pattern.test(full)) { return full; } } return \"\"; }; const result = walk(root); if (result) process.stdout.write(result);' "$(ARTIFACTS_NODEJS_DIR)/node_modules/sharp")"; \
 	test -n "$$SHARP_BINARY" || { echo "Unable to locate compiled sharp addon"; exit 1; }; \
 	test -f "$$SHARP_BINARY"; \
 	ldd "$$SHARP_BINARY"; \
