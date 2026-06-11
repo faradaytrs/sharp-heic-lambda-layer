@@ -7,6 +7,10 @@ LIBHEIF_VERSION=1.23.0
 VIPS_VERSION=8.18.3
 SHARP_VERSION=0.35.0
 
+# CodeBuild medium instances can OOM when libaom compiles with full parallelism.
+BUILD_JOBS ?= 2
+LIBAOM_BUILD_JOBS ?= 1
+
 PREFIX_PATH=/usr/local
 LIB_PATH=$(PREFIX_PATH)/lib
 LIBRARY_PATH=$(LIB_PATH)
@@ -62,7 +66,7 @@ libwebp:
 	@printf '\n==> %s\n' "Building libwebp $(WEBP_VERSION)"
 	rm -rf "libwebp-$(WEBP_VERSION)"
 	$(CURL) "https://github.com/webmproject/libwebp/archive/v$(WEBP_VERSION).tar.gz" | tar zx
-	cd libwebp-$(WEBP_VERSION) && ./autogen.sh && ./configure --enable-libwebpmux --prefix=$(PREFIX_PATH) && make V=0 && make install
+	cd libwebp-$(WEBP_VERSION) && ./autogen.sh && ./configure --enable-libwebpmux --prefix=$(PREFIX_PATH) && make V=0 -j$(BUILD_JOBS) && make install
 
 codec-stack: libheif verifyCodecStack
 
@@ -83,14 +87,14 @@ libde265:
 		-DBUILD_SHARED_LIBS=ON \
 		-DENABLE_DECODER=OFF \
 		-DENABLE_SHERLOCK265=OFF && \
-		cmake --build build --parallel && \
+		cmake --build build --parallel $(BUILD_JOBS) && \
 		cmake --install build
 
 x265:
 	@printf '\n==> %s\n' "Building x265 $(X265_VERSION)"
 	rm -rf "x265_$(X265_VERSION)"
 	$(CURL) "https://bitbucket.org/multicoreware/x265_git/downloads/x265_$(X265_VERSION).tar.gz" | tar zx
-	cd x265_$(X265_VERSION) && cd build/linux && cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(PREFIX_PATH) ../../source && make V=0 && make install
+	cd x265_$(X265_VERSION) && cd build/linux && cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(PREFIX_PATH) ../../source && make V=0 -j$(BUILD_JOBS) && make install
 
 libaom:
 	@printf '\n==> %s\n' "Building libaom $(LIBAOM_VERSION)"
@@ -101,22 +105,24 @@ libaom:
 		-DBUILD_SHARED_LIBS=1 \
 		-DENABLE_TESTS=0 \
 		-DENABLE_DOCS=0 \
+		-DENABLE_EXAMPLES=0 \
+		-DENABLE_TOOLS=0 \
 		-DCMAKE_INSTALL_PREFIX=${PREFIX_PATH} \
 		-DCMAKE_INSTALL_LIBDIR=${PREFIX_PATH}/lib && \
-		cmake --build build --parallel && \
+		cmake --build build --parallel $(LIBAOM_BUILD_JOBS) && \
 		cmake --install build
 
 libheif: x265 libde265 libaom
 	@printf '\n==> %s\n' "Building libheif $(LIBHEIF_VERSION)"
 	rm -rf "libheif-$(LIBHEIF_VERSION)"
 	$(CURL) "https://github.com/strukturag/libheif/releases/download/v$(LIBHEIF_VERSION)/libheif-$(LIBHEIF_VERSION).tar.gz" | tar zx
-	cd libheif-$(LIBHEIF_VERSION) && mkdir -p build && cd build && cmake -DCMAKE_INSTALL_LIBDIR=$(LIB_PATH) -DWITH_EXAMPLES=OFF --preset=release-noplugins .. && make V=0 && make install
+	cd libheif-$(LIBHEIF_VERSION) && mkdir -p build && cd build && cmake -DCMAKE_INSTALL_LIBDIR=$(LIB_PATH) -DWITH_EXAMPLES=OFF --preset=release-noplugins .. && make V=0 -j$(BUILD_JOBS) && make install
 
 libvips: system-libs codec-stack libwebp
 	@printf '\n==> %s\n' "Building libvips $(VIPS_VERSION)"
 	rm -rf "vips-$(VIPS_VERSION)"
 	$(CURL) "https://github.com/libvips/libvips/releases/download/v$(VIPS_VERSION)/vips-$(VIPS_VERSION).tar.xz" | tar xJ
-	cd vips-$(VIPS_VERSION) && meson setup build --prefix ${PREFIX_PATH} --libdir ${LIB_PATH} -Dheif=enabled -Dheif-module=disabled -Dlcms=enabled --buildtype release && cd build && meson compile && meson install
+	cd vips-$(VIPS_VERSION) && meson setup build --prefix ${PREFIX_PATH} --libdir ${LIB_PATH} -Dheif=enabled -Dheif-module=disabled -Dlcms=enabled --buildtype release && meson compile -C build -j $(BUILD_JOBS) && meson install -C build
 	$(MAKE) verifyLibvips
 
 verifyLibvips:
