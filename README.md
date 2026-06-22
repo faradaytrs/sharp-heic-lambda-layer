@@ -64,7 +64,7 @@ This repo exists as it is rather painful to compile all libraries required to ge
 ### Layer contents
 This lambda layer contains the node module [sharp](https://github.com/lovell/sharp). But unlike a normal installation via `npm i sharp` this layer does not use the prebuilt sharp and libvips binaries. This layer compiles libwebp, libde265, x265, libaom, libheif, and libvips from source, then explicitly runs `sharp`'s build script against that global libvips installation in order to provide HEIC/HEIF (and WebP) functionality in an AWS Lambda environment.
 
-As of `sharp@0.35.1`, building from source is no longer triggered automatically during `npm install`, so the layer build now installs the package first and then runs `sharp`'s build script against the custom `libvips` installation.
+As of `sharp@0.35.2`, building from source is no longer triggered automatically during `npm install`, so the layer build now installs the package first and then runs `sharp`'s build script against the custom `libvips` installation.
 
 The native build is intentionally pinned end-to-end so the layer uses the versions listed below instead of whatever happens to be available in the build image.
 
@@ -83,7 +83,7 @@ The following table lists the release version of this repo together with the ver
 |   4.2.0 | 0.33.5 |  8.15.3 |  1.18.2 |   1.4.0 |    1.0.15 |    3.6 |  3.9.1 |     20 |
 |   5.0.0 | 0.34.3 |  8.17.1 |  1.20.1 |   1.6.0 |    1.0.16 |    4.1 | 3.12.1 |     22 |
 |   5.1.0 | 0.34.4 |  8.17.2 |  1.20.2 |   1.6.0 |    1.0.16 |    4.1 | 3.13.1 |     22 |
-| upstream | 0.35.1 | 8.18.3 |  1.23.0 |   1.6.0 |    1.0.18 |    4.1 | 3.14.1 |     24 |
+| upstream | 0.35.2 | 8.18.3 |  1.23.0 |   1.6.0 |    1.0.18 |    4.1 | 3.14.1 |     24 |
 
 ### CompatibleRuntimes
 - `nodejs12.x` (v1.x)

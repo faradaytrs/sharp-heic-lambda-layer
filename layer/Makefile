@@ -5,7 +5,7 @@ LIBAOM_VERSION=3.14.1
 X265_VERSION=4.1
 LIBHEIF_VERSION=1.23.0
 VIPS_VERSION=8.18.3
-SHARP_VERSION=0.35.1
+SHARP_VERSION=0.35.2
 
 # CodeBuild medium instances can OOM when libaom compiles with full parallelism.
 BUILD_JOBS ?= 2
