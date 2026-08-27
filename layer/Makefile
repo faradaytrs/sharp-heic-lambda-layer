@@ -1,9 +1,9 @@
 # Library Versions
 WEBP_VERSION=1.6.0
-LIBDE265_VERSION=1.0.18
+LIBDE265_VERSION=1.1.1
 LIBAOM_VERSION=3.14.1
-X265_VERSION=4.1
-LIBHEIF_VERSION=1.23.0
+X265_VERSION=4.3
+LIBHEIF_VERSION=1.23.2
 VIPS_VERSION=8.18.6
 SHARP_VERSION=0.35.4
 
@@ -93,7 +93,7 @@ libde265:
 x265:
 	@printf '\n==> %s\n' "Building x265 $(X265_VERSION)"
 	rm -rf "x265_$(X265_VERSION)"
-	$(CURL) "https://bitbucket.org/multicoreware/x265_git/downloads/x265_$(X265_VERSION).tar.gz" | tar zx
+	$(CURL) "https://github.com/Multicorewareinc/x265/releases/download/$(X265_VERSION)/x265_$(X265_VERSION).tar.gz" | tar zx
 	cd x265_$(X265_VERSION) && cd build/linux && cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(PREFIX_PATH) ../../source && make V=0 -j$(BUILD_JOBS) && make install
 
 libaom:
