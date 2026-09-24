@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "npm run lint",
-    "lint": "npx eslint .",
-    "lint:fix": "npx eslint --fix .",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
     "build": "sam build",
     "prepackage": "node deployment/createSAMConfiguration.js > samconfig.toml",
     "package": "sam package",
@@ -25,9 +25,9 @@
   },
   "homepage": "https://github.com/zoellner/sharp-heic-lambda-layer#readme",
   "engines": {
-    "node": ">=22.11"
+    "node": ">=22.13"
   },
   "devDependencies": {
-    "eslint": "^9.38.0"
+    "oxlint": "^1.85.0"
   }
 }
