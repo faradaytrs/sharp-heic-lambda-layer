@@ -9,7 +9,7 @@ env:
 phases:
   install:
     runtime-versions:
-      nodejs: 24
+      nodejs: 26
     commands:
       - 'echo "==> Install phase: tool versions"'
       - node --version

@@ -6,8 +6,8 @@ AWS Lambda Layer providing [sharp](https://github.com/lovell/sharp) with HEIC (a
 ## Prerequisites
 
 * Docker
-* [A recent AWS SAM CLI release with `nodejs24.x` support](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html)
-* Node v24 (current upstream build)
+* [A recent AWS SAM CLI release with `nodejs26.x` support](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html)
+* Node v26 (current upstream build)
 
 ## Usage
 
@@ -56,7 +56,7 @@ The special value `account` for `PRINCIPAL` is used to give access to the accoun
 The environment variables are used to create a `samconfig.toml` file that configures the `sam package` and `sam deploy` commands.
 
 ### Note regarding build process
-Previously, some custom docker images were needed to build this layer. AWS now publishes managed SAM build images for current Lambda runtimes, including `public.ecr.aws/sam/build-nodejs24.x`.
+Previously, some custom docker images were needed to build this layer. The CodeBuild project uses the Amazon Linux 2023 image `aws/codebuild/amazonlinux-x86_64-standard:6.0` with Node.js 26, which matches the `nodejs26.x` Lambda runtime.
 
 ## Background
 This repo exists as it is rather painful to compile all libraries required to get sharp to work with HEIC/HEIF files in an AWS Lambda environment. The sharp repository has several [issues](https://github.com/lovell/sharp/issues) related to this.
@@ -83,7 +83,7 @@ The following table lists the release version of this repo together with the ver
 |   4.2.0 | 0.33.5 |  8.15.3 |  1.18.2 |   1.4.0 |    1.0.15 |    3.6 |  3.9.1 |     20 |
 |   5.0.0 | 0.34.3 |  8.17.1 |  1.20.1 |   1.6.0 |    1.0.16 |    4.1 | 3.12.1 |     22 |
 |   5.1.0 | 0.34.4 |  8.17.2 |  1.20.2 |   1.6.0 |    1.0.16 |    4.1 | 3.13.1 |     22 |
-| upstream | 0.35.5 | 8.18.7 |  1.23.7 |   1.6.0 |    1.1.3  |    4.3 | 3.15.2 |     24 |
+| upstream | 0.35.5 | 8.18.7 |  1.23.7 |   1.6.0 |    1.1.3  |    4.3 | 3.15.2 |     26 |
 
 ### CompatibleRuntimes
 - `nodejs12.x` (v1.x)
@@ -91,7 +91,7 @@ The following table lists the release version of this repo together with the ver
 - `nodejs16.x` (v3.x)
 - `nodejs20.x` (v4.x)
 - `nodejs22.x` (v5.x)
-- `nodejs24.x` (upstream)
+- `nodejs26.x` (upstream)
 
 ## Contributions
 If you would like to contribute to this repository, please open an issue or submit a PR.
